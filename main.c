@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <mysql.h>
 #include <mysqld_error.h>
+#include "utils.h"
 
 // Macro definitions
 #define PW "Shyamsql@123"
