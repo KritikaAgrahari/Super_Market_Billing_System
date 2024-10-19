@@ -1,4 +1,4 @@
-Here’s a sample `README.md` file for your supermarket billing system project in C with MySQL.
+
 
 # Supermarket Billing System
 
@@ -64,6 +64,10 @@ CREATE TABLE OrderItems (
     FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 );
+
+Create TABLE PASSWORD(
+Id VARCHAR(20),
+Password VARCHAR(30));
 ```
 
 ## Prerequisites
