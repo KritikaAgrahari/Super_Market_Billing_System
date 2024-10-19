@@ -100,7 +100,6 @@ void getDBPassword(MYSQL* conn, const char* id, char* encryptedPW) {
 
 
 
-// Function for addition of products
 void addProduct(MYSQL *conn) {
     char *query;
     char *productName = malloc(101 * sizeof(char));
@@ -163,9 +162,66 @@ void addProduct(MYSQL *conn) {
 
 
 // Function to insert new customer into Customers table
-void addCustomer(MYSQL *conn){
-	
+void addCustomer(MYSQL *conn) {
+    char *query;
+    char *customerName = malloc(101 * sizeof(char));
+    char *phoneNumber = malloc(16 * sizeof(char));
+    char *email = malloc(101 * sizeof(char));
+    char *address = malloc(256 * sizeof(char));
+
+    if (customerName == NULL || phoneNumber == NULL || email == NULL || address == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+
+    // Take input from user
+    printf("\nEnter Customer Name: ");
+    clear_stdin(); // Clear input buffer to avoid skipping input
+    fgets(customerName, 101, stdin);
+    customerName[strcspn(customerName, "\n")] = 0; // Remove newline character
+
+    printf("Enter Phone Number: ");
+    fgets(phoneNumber, 16, stdin);
+    phoneNumber[strcspn(phoneNumber, "\n")] = 0; // Remove newline character
+
+    printf("Enter Email: ");
+    fgets(email, 101, stdin);
+    email[strcspn(email, "\n")] = 0; // Remove newline character
+
+    printf("Enter Address: ");
+    fgets(address, 256, stdin);
+    address[strcspn(address, "\n")] = 0; // Remove newline character
+
+    // Allocate memory for the query
+    query = malloc((256 + strlen(customerName) + strlen(phoneNumber) + strlen(email) + strlen(address)) * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation for query failed\n");
+        free(customerName);
+        free(phoneNumber);
+        free(email);
+        free(address);
+        return;
+    }
+
+    // Formulate the query
+    sprintf(query, "INSERT INTO Customers (CustomerName, PhoneNumber, Email, Address) VALUES ('%s', '%s', '%s', '%s')", 
+            customerName, phoneNumber, email, address);
+
+    // Execute the query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Customer inserted successfully!\n");
+    }
+
+    // Free allocated memory
+    free(query);
+    free(customerName);
+    free(phoneNumber);
+    free(email);
+    free(address);
 }
+
 
 // Function to create a new order for a customer in Orders table
 void createOrder(MYSQL *conn){
