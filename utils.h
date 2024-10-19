@@ -33,13 +33,13 @@ void completeOrder(MYSQL *conn);
 void removeProduct(MYSQL *conn);
 
 // Function to delete a customer by CustomerID
-void removeCustomer(MYSQL *conn, int customer_id);
+void removeCustomer(MYSQL *conn);
 
 // Function to delete an order by OrderID
-void deleteOrder(MYSQL *conn, int order_id);
+void deleteOrder(MYSQL *conn);
 
 // Function to delete an order item by OrderItemID
-void deleteOrderItem(MYSQL *conn, int order_item_id);
+void deleteOrderItem(MYSQL *conn);
 
 // Function to search for a product by ProductID or ProductName
 void searchProduct(MYSQL *conn);
