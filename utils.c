@@ -883,8 +883,145 @@ void searchProduct(MYSQL *conn) {
 
 
 // Function to search for a customer by CustomerID or CustomerName
-void searchCustomer(MYSQL *conn){
+void searchCustomer(MYSQL *conn) {
+    char *query;
+    char choice;
+    int customerId;
+    char *customerName = malloc(101 * sizeof(char));
+
+    // Allocate memory for the query
+    query = malloc(256 * sizeof(char));
+    if (query == NULL || customerName == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+
+    printf("Press 1 to display all customers, 2 to search by CustomerID or CustomerName, 0 to exit: ");
+    scanf(" %c", &choice);
+
+    if (choice == '1') {
+        // Select all customers
+        sprintf(query, "SELECT * FROM Customers");
+
+        // Execute the query
+        if (mysql_query(conn, query)) {
+            fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        MYSQL_RES *result = mysql_store_result(conn);
+        if (result == NULL) {
+            fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        // Display customers in table format
+        printf("+-------------+----------------------+--------------------------------+------------------+\n");
+        printf("| CustomerID  | CustomerName         | PhoneNumber                    | Email            |\n");
+        printf("+-------------+----------------------+--------------------------------+------------------+\n");
+
+        MYSQL_ROW row;
+        while ((row = mysql_fetch_row(result)) != NULL) {
+            printf("| %-11s | %-20s | %-30s | %-20s |\n", row[0], row[1], row[2], row[3]);
+        }
+
+        printf("+-------------+----------------------+--------------------------------+------------------+\n");
+
+        mysql_free_result(result);
+    } else if (choice == '2') {
+        // Search by CustomerID or CustomerName
+        printf("Search by (I)D or (N)ame? Enter I or N: ");
+        scanf(" %c", &choice);
+
+        if (choice == 'I' || choice == 'i') {
+            // Search by CustomerID
+            printf("Enter the CustomerID: ");
+            scanf("%d", &customerId);
+
+            // Formulate the query
+            sprintf(query, "SELECT * FROM Customers WHERE CustomerID = %d", customerId);
+
+            // Execute the query
+            if (mysql_query(conn, query)) {
+                fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+                free(query);
+                return;
+            }
+
+            MYSQL_RES *result = mysql_store_result(conn);
+            if (result == NULL) {
+                fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+                free(query);
+                return;
+            }
+
+            // Check if any rows were returned
+            if (mysql_num_rows(result) > 0) {
+                MYSQL_ROW row = mysql_fetch_row(result);
+                printf("Customer found:\n");
+                printf("CustomerID: %s\n", row[0]);
+                printf("CustomerName: %s\n", row[1]);
+                printf("PhoneNumber: %s\n", row[2]);
+                printf("Email: %s\n", row[3]);
+                printf("Address: %s\n", row[4]);
+            } else {
+                printf("No customer found with CustomerID %d.\n", customerId);
+            }
+
+            mysql_free_result(result);
+        } else if (choice == 'N' || choice == 'n') {
+            // Search by CustomerName
+            printf("Enter the CustomerName: ");
+            getchar(); // To consume the newline character
+            fgets(customerName, 101, stdin);
+            customerName[strcspn(customerName, "\n")] = 0; // Remove newline character
+
+            // Formulate the query
+            sprintf(query, "SELECT * FROM Customers WHERE CustomerName LIKE '%%%s%%'", customerName);
+
+            // Execute the query
+            if (mysql_query(conn, query)) {
+                fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+                free(query);
+                free(customerName);
+                return;
+            }
+            MYSQL_ROW row;
+            MYSQL_RES *result = mysql_store_result(conn);
+            if (result == NULL) {
+                fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+                free(query);
+                free(customerName);
+                return;
+            }
+
+            // Check if any rows were returned
+            if (mysql_num_rows(result) > 0) {
+                printf("Customers found:\n");
+                while ((row = mysql_fetch_row(result)) != NULL) {
+                    printf("CustomerID: %s, CustomerName: %s, PhoneNumber: %s, Email: %s, Address: %s\n", row[0], row[1], row[2], row[3], row[4]);
+                }
+            } else {
+                printf("No customer found with name '%s'.\n", customerName);
+            }
+
+            mysql_free_result(result);
+        } else {
+            printf("Invalid choice! Please enter I or N.\n");
+        }
+    } else if (choice == '0') {
+        printf("Exiting...\n");
+    } else {
+        printf("Invalid option! Please enter 1, 2, or 0.\n");
+    }
+
+    // Free allocated memory
+    free(query);
+    free(customerName);
 }
+
 
 // Function to search for an order by OrderID or CustomerID
 void searchOrder(MYSQL *conn){
