@@ -1251,38 +1251,447 @@ void searchOrderItem(MYSQL *conn) {
     free(query);
 }
 
+
 // Function to check if a product exists by ProductID
-int productExists(MYSQL *conn, int product_id){
+int productExists(MYSQL *conn, int product_id) {
+    char query[256];
+    snprintf(query, sizeof(query), "SELECT COUNT(*) FROM Products WHERE ProductID = %d", product_id);
+
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        return 0; // Assuming product does not exist if the query fails
+    }
+
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (res) {
+        MYSQL_ROW row = mysql_fetch_row(res);
+        int count = atoi(row[0]);
+        mysql_free_result(res);
+        return count > 0; // Return true if product exists
+    }
+
+    return 0; // Product does not exist
 }
+
 
 // Function to check if a customer exists by CustomerID
-int customerExists(MYSQL *conn, int customer_id){
+int customerExists(MYSQL *conn, int customer_id) {
+    char query[256];
+    snprintf(query, sizeof(query), "SELECT COUNT(*) FROM Customers WHERE CustomerID = %d", customer_id);
+
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        return 0; // Assuming customer does not exist if the query fails
+    }
+
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (res) {
+        MYSQL_ROW row = mysql_fetch_row(res);
+        int count = atoi(row[0]);
+        mysql_free_result(res);
+        return count > 0; // Return true if customer exists
+    }
+
+    return 0; // Customer does not exist
 }
+
 
 // Function to check if an order exists by OrderID
-int orderExists(MYSQL *conn, int order_id){
-	
+int orderExists(MYSQL *conn, int order_id) {
+    char query[256];
+    snprintf(query, sizeof(query), "SELECT COUNT(*) FROM Orders WHERE OrderID = %d", order_id);
+
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        return 0; // Assuming order does not exist if the query fails
+    }
+
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (res) {
+        MYSQL_ROW row = mysql_fetch_row(res);
+        int count = atoi(row[0]);
+        mysql_free_result(res);
+        return count > 0; // Return true if order exists
+    }
+
+    return 0; // Order does not exist
 }
+
 
 // Function to check if an order item exists by OrderItemID
-int orderItemExists(MYSQL *conn, int order_item_id){
-	
+int orderItemExists(MYSQL *conn, int order_item_id) {
+    char query[256];
+    snprintf(query, sizeof(query), "SELECT COUNT(*) FROM OrderItems WHERE OrderItemID = %d", order_item_id);
+
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        return 0; // Assuming order item does not exist if the query fails
+    }
+
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (res) {
+        MYSQL_ROW row = mysql_fetch_row(res);
+        int count = atoi(row[0]);
+        mysql_free_result(res);
+        return count > 0; // Return true if order item exists
+    }
+
+    return 0; // Order item does not exist
 }
+
 
 // Function to update product details by ProductID
-void updateProduct(MYSQL *conn){
+void updateProduct(MYSQL *conn) {
+    char *query = malloc(512 * sizeof(char));
+    int product_id;
+    char *new_name = (char *)malloc(100 * sizeof(char)); // Dynamic allocation for Product Name
+    char *new_description = (char *)malloc(200 * sizeof(char)); // Dynamic allocation for Description
+    float new_price;
+    int new_stock;
+
+    // Ask the user for Product ID
+    printf("Enter the Product ID to update: ");
+    scanf("%d", &product_id);
+
+    // Check if the product exists
+    if (!productExists(conn, product_id)) {
+        printf("Product with ID %d does not exist.\n", product_id);
+        free(new_name);
+        free(new_description);
+        free(query);
+        return;
+    }
+
+    // Retrieve and display current product details
+    snprintf(query, 512, "SELECT ProductName, Description, Price, Stock FROM Products WHERE ProductID = %d", product_id);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        free(new_name);
+        free(new_description);
+        free(query);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Error fetching result: %s\n", mysql_error(conn));
+        free(new_name);
+        free(new_description);
+        free(query);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row) {
+        printf("\nCurrent Product Details:\n");
+        printf("Name: %s\n", row[0]);
+        printf("Description: %s\n", row[1]);
+        printf("Price: %s\n", row[2]);
+        printf("Stock: %s\n", row[3]);
+    }
+    mysql_free_result(result);
+
+    // Ask for confirmation to proceed
+    printf("Are you sure you want to update Product ID %d? (1 for Yes, 0 for No): ", product_id);
+    int confirm;
+    scanf("%d", &confirm);
+    if (!confirm) {
+        printf("Update cancelled.\n");
+        free(new_name);
+        free(new_description);
+        free(query);
+        return;
+    }
+
+    // Get new details
+    printf("Enter new Product Name: ");
+    getchar(); // To consume newline left by scanf
+    fgets(new_name, 100, stdin);
+    new_name[strcspn(new_name, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Description: ");
+    fgets(new_description, 200, stdin);
+    new_description[strcspn(new_description, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Price: ");
+    scanf("%f", &new_price);
+
+    printf("Enter new Stock: ");
+    scanf("%d", &new_stock);
+
+    // Prepare SQL query to update Product
+    snprintf(query, 512, "UPDATE Products SET ProductName = '%s', Description = '%s', Price = %.2f, Stock = %d WHERE ProductID = %d",
+             new_name, new_description, new_price, new_stock, product_id);
+
+    // Execute the SQL query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Product updated successfully!\n");
+    }
+
+    // Free allocated memory
+    free(new_name);
+    free(new_description);
+    free(query);
 }
+
 
 // Function to update customer details by CustomerID
-void updateCustomer(MYSQL *conn){
+void updateCustomer(MYSQL *conn) {
+    char *query = malloc(512 * sizeof(char));
+    int customer_id;
+    char *new_name = (char *)malloc(100 * sizeof(char)); // Dynamic allocation for Name
+    char *new_email = (char *)malloc(100 * sizeof(char)); // Dynamic allocation for Email
+    char *new_phone = (char *)malloc(20 * sizeof(char)); // Dynamic allocation for Phone
+
+    // Ask the user for Customer ID
+    printf("Enter the Customer ID to update: ");
+    scanf("%d", &customer_id);
+
+    // Check if the customer exists
+    if (!customerExists(conn, customer_id)) {
+        printf("Customer with ID %d does not exist.\n", customer_id);
+        free(new_name);
+        free(new_email);
+        free(new_phone);
+        free(query);
+        return;
+    }
+
+    // Retrieve and display current customer details
+    snprintf(query, 512, "SELECT Name, Email, Phone FROM Customers WHERE CustomerID = %d", customer_id);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        free(new_name);
+        free(new_email);
+        free(new_phone);
+        free(query);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Error fetching result: %s\n", mysql_error(conn));
+        free(new_name);
+        free(new_email);
+        free(new_phone);
+        free(query);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row) {
+        printf("\nCurrent Customer Details:\n");
+        printf("Name: %s\n", row[0]);
+        printf("Email: %s\n", row[1]);
+        printf("Phone: %s\n", row[2]);
+    }
+    mysql_free_result(result);
+
+    // Ask for confirmation to proceed
+    printf("Are you sure you want to update Customer ID %d? (1 for Yes, 0 for No): ", customer_id);
+    int confirm;
+    scanf("%d", &confirm);
+    if (!confirm) {
+        printf("Update cancelled.\n");
+        free(new_name);
+        free(new_email);
+        free(new_phone);
+        free(query);
+        return;
+    }
+
+    // Get new details
+    printf("Enter new Name: ");
+    getchar(); // To consume newline left by scanf
+    fgets(new_name, 100, stdin);
+    new_name[strcspn(new_name, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Email: ");
+    fgets(new_email, 100, stdin);
+    new_email[strcspn(new_email, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Phone: ");
+    fgets(new_phone, 20, stdin);
+    new_phone[strcspn(new_phone, "\n")] = 0;  // Remove newline
+
+    // Prepare SQL query to update Customer
+    snprintf(query, 512, "UPDATE Customers SET Name = '%s', Email = '%s', Phone = '%s' WHERE CustomerID = %d",
+             new_name, new_email, new_phone, customer_id);
+
+    // Execute the SQL query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Customer updated successfully!\n");
+    }
+
+    // Free allocated memory
+    free(new_name);
+    free(new_email);
+    free(new_phone);
+    free(query);
 }
+
 
 // Function to update order details by OrderID
-void updateOrder(MYSQL *conn){
+void updateOrder(MYSQL *conn) {
+    char *query = malloc(512 * sizeof(char));
+    int order_id;
+    char *new_status = (char *)malloc(50 * sizeof(char)); // Dynamic allocation for Status
+    char *new_date = (char *)malloc(20 * sizeof(char)); // Dynamic allocation for Date
+
+    // Ask the user for Order ID
+    printf("Enter the Order ID to update: ");
+    scanf("%d", &order_id);
+
+    // Check if the order exists
+    if (!orderExists(conn, order_id)) {
+        printf("Order with ID %d does not exist.\n", order_id);
+        free(new_status);
+        free(new_date);
+        free(query);
+        return;
+    }
+
+    // Retrieve and display current order details
+    snprintf(query, 512, "SELECT Status, OrderDate FROM Orders WHERE OrderID = %d", order_id);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        free(new_status);
+        free(new_date);
+        free(query);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Error fetching result: %s\n", mysql_error(conn));
+        free(new_status);
+        free(new_date);
+        free(query);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row) {
+        printf("\nCurrent Order Details:\n");
+        printf("Status: %s\n", row[0]);
+        printf("Order Date: %s\n", row[1]);
+    }
+    mysql_free_result(result);
+
+    // Ask for confirmation to proceed
+    printf("Are you sure you want to update Order ID %d? (1 for Yes, 0 for No): ", order_id);
+    int confirm;
+    scanf("%d", &confirm);
+    if (!confirm) {
+        printf("Update cancelled.\n");
+        free(new_status);
+        free(new_date);
+        free(query);
+        return;
+    }
+
+    // Get new details
+    printf("Enter new Status: ");
+    getchar(); // To consume newline left by scanf
+    fgets(new_status, 50, stdin);
+    new_status[strcspn(new_status, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Order Date (YYYY-MM-DD): ");
+    fgets(new_date, 20, stdin);
+    new_date[strcspn(new_date, "\n")] = 0;  // Remove newline
+
+    // Prepare SQL query to update Order
+    snprintf(query, 512, "UPDATE Orders SET Status = '%s', OrderDate = '%s' WHERE OrderID = %d",
+             new_status, new_date, order_id);
+
+    // Execute the SQL query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Order updated successfully!\n");
+    }
+
+    // Free allocated memory
+    free(new_status);
+    free(new_date);
+    free(query);
 }
 
+
 // Function to update order item details by OrderItemID
-void updateOrderItem(MYSQL *conn){
+void updateOrderItem(MYSQL *conn) {
+    char *query = malloc(512 * sizeof(char));
+    int order_item_id;
+    int new_product_id;
+    int new_quantity;
+
+    // Ask the user for Order Item ID
+    printf("Enter the Order Item ID to update: ");
+    scanf("%d", &order_item_id);
+
+    // Check if the order item exists
+    if (!orderItemExists(conn, order_item_id)) {
+        printf("Order Item with ID %d does not exist.\n", order_item_id);
+        free(query);
+        return;
+    }
+
+    // Retrieve and display current order item details
+    snprintf(query, 512, "SELECT ProductID, Quantity FROM OrderItems WHERE OrderItemID = %d", order_item_id);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        free(query);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Error fetching result: %s\n", mysql_error(conn));
+        free(query);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row) {
+        printf("\nCurrent Order Item Details:\n");
+        printf("Product ID: %s\n", row[0]);
+        printf("Quantity: %s\n", row[1]);
+    }
+    mysql_free_result(result);
+
+    // Ask for confirmation to proceed
+    printf("Are you sure you want to update Order Item ID %d? (1 for Yes, 0 for No): ", order_item_id);
+    int confirm;
+    scanf("%d", &confirm);
+    if (!confirm) {
+        printf("Update cancelled.\n");
+        free(query);
+        return;
+    }
+
+    // Get new details
+    printf("Enter new Product ID: ");
+    scanf("%d", &new_product_id);
+    printf("Enter new Quantity: ");
+    scanf("%d", &new_quantity);
+
+    // Prepare SQL query to update Order Item
+    snprintf(query, 512, "UPDATE OrderItems SET ProductID = %d, Quantity = %d WHERE OrderItemID = %d",
+             new_product_id, new_quantity, order_item_id);
+
+    // Execute the SQL query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Order Item updated successfully!\n");
+    }
+
+    // Free allocated memory
+    free(query);
 }
 
 
