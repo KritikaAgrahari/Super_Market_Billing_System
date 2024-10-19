@@ -16,31 +16,26 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `orders`
+-- Table structure for table `password`
 --
 
-DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `password`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `orders` (
-  `OrderID` int NOT NULL AUTO_INCREMENT,
-  `CustomerID` int DEFAULT NULL,
-  `OrderDate` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `TotalAmount` decimal(10,2) DEFAULT NULL,
-  PRIMARY KEY (`OrderID`),
-  KEY `CustomerID` (`CustomerID`),
-  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`CustomerID`) REFERENCES `customers` (`CustomerID`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `password` (
+  `Id` varchar(20) DEFAULT NULL,
+  `Password` varchar(30) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `orders`
+-- Dumping data for table `password`
 --
 
-LOCK TABLES `orders` WRITE;
-/*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,1,'2024-10-19 16:27:08',850.00),(2,2,'2024-10-19 16:27:08',550.00),(3,3,'2024-10-19 16:27:08',180.00),(4,4,'2024-10-19 16:27:08',800.00),(5,5,'2024-10-19 16:27:08',200.00);
-/*!40000 ALTER TABLE `orders` ENABLE KEYS */;
+LOCK TABLES `password` WRITE;
+/*!40000 ALTER TABLE `password` DISABLE KEYS */;
+INSERT INTO `password` VALUES ('shyam1','zofht890');
+/*!40000 ALTER TABLE `password` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
