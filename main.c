@@ -69,7 +69,7 @@ int main() {
 
             // Insert the encrypted password into the database
             char signupQuery[256];
-            sprintf(signupQuery, "INSERT INTO password (Id, PW) VALUES ('%s', '%s')", id, encryptedPW);
+            sprintf(signupQuery, "INSERT INTO password (Id, Password) VALUES ('%s', '%s')", id, encryptedPW);
             if (mysql_query(conn, signupQuery)) {
                 printf("Error: %s\n", mysql_error(conn));
             } else {
