@@ -1438,8 +1438,102 @@ void updateProduct(MYSQL *conn) {
 
 
 // Function to update customer details by CustomerID
-void updateCustomer(MYSQL *conn){
+void updateCustomer(MYSQL *conn) {
+    char *query = malloc(512 * sizeof(char));
+    int customer_id;
+    char *new_name = (char *)malloc(100 * sizeof(char)); // Dynamic allocation for Name
+    char *new_email = (char *)malloc(100 * sizeof(char)); // Dynamic allocation for Email
+    char *new_phone = (char *)malloc(20 * sizeof(char)); // Dynamic allocation for Phone
+
+    // Ask the user for Customer ID
+    printf("Enter the Customer ID to update: ");
+    scanf("%d", &customer_id);
+
+    // Check if the customer exists
+    if (!customerExists(conn, customer_id)) {
+        printf("Customer with ID %d does not exist.\n", customer_id);
+        free(new_name);
+        free(new_email);
+        free(new_phone);
+        free(query);
+        return;
+    }
+
+    // Retrieve and display current customer details
+    snprintf(query, 512, "SELECT Name, Email, Phone FROM Customers WHERE CustomerID = %d", customer_id);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        free(new_name);
+        free(new_email);
+        free(new_phone);
+        free(query);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Error fetching result: %s\n", mysql_error(conn));
+        free(new_name);
+        free(new_email);
+        free(new_phone);
+        free(query);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row) {
+        printf("\nCurrent Customer Details:\n");
+        printf("Name: %s\n", row[0]);
+        printf("Email: %s\n", row[1]);
+        printf("Phone: %s\n", row[2]);
+    }
+    mysql_free_result(result);
+
+    // Ask for confirmation to proceed
+    printf("Are you sure you want to update Customer ID %d? (1 for Yes, 0 for No): ", customer_id);
+    int confirm;
+    scanf("%d", &confirm);
+    if (!confirm) {
+        printf("Update cancelled.\n");
+        free(new_name);
+        free(new_email);
+        free(new_phone);
+        free(query);
+        return;
+    }
+
+    // Get new details
+    printf("Enter new Name: ");
+    getchar(); // To consume newline left by scanf
+    fgets(new_name, 100, stdin);
+    new_name[strcspn(new_name, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Email: ");
+    fgets(new_email, 100, stdin);
+    new_email[strcspn(new_email, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Phone: ");
+    fgets(new_phone, 20, stdin);
+    new_phone[strcspn(new_phone, "\n")] = 0;  // Remove newline
+
+    // Prepare SQL query to update Customer
+    snprintf(query, 512, "UPDATE Customers SET Name = '%s', Email = '%s', Phone = '%s' WHERE CustomerID = %d",
+             new_name, new_email, new_phone, customer_id);
+
+    // Execute the SQL query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Customer updated successfully!\n");
+    }
+
+    // Free allocated memory
+    free(new_name);
+    free(new_email);
+    free(new_phone);
+    free(query);
 }
+
 
 // Function to update order details by OrderID
 void updateOrder(MYSQL *conn){
