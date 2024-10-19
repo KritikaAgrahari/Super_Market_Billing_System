@@ -376,12 +376,137 @@ void addOrderItem(MYSQL *conn) {
 }
 
 // Function to mark order as complete by updating the total amount
-void completeOrder(MYSQL *conn, int order_id){
+void completeOrder(MYSQL *conn, int order_id) {
+    char *query;
+    double totalAmount = 0.0;
+
+    // Allocate memory for the query to fetch subtotal from OrderItems table
+    query = malloc(128 * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation for query failed\n");
+        return;
+    }
+
+    // Formulate the query to calculate the total amount
+    sprintf(query, "SELECT SUM(Subtotal) FROM OrderItems WHERE OrderID = %d", order_id);
+
+    // Execute the query to get the total amount
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Failed to fetch order total: %s\n", mysql_error(conn));
+        free(query);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Failed to store result: %s\n", mysql_error(conn));
+        free(query);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row != NULL && row[0] != NULL) {
+        totalAmount = atof(row[0]);
+    } else {
+        fprintf(stderr, "No order items found for the given order ID\n");
+        mysql_free_result(result);
+        free(query);
+        return;
+    }
+    mysql_free_result(result);
+    free(query);
+
+    // Allocate memory for the query to update the Orders table
+    query = malloc(128 * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation for query failed\n");
+        return;
+    }
+
+    // Formulate the query to update the total amount in the Orders table
+    sprintf(query, "UPDATE Orders SET TotalAmount = %.2f WHERE OrderID = %d", totalAmount, order_id);
+
+    // Execute the query to update the Orders table
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Failed to update order total: %s\n", mysql_error(conn));
+    } else {
+        printf("Order marked as complete successfully! Total amount: %.2f\n", totalAmount);
+    }
+
+    // Free allocated memory
+    free(query);
 }
 
 // Function to delete a product by ProductID
 void removeProduct(MYSQL *conn, int product_id){
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Function to delete a customer by CustomerID
 void removeCustomer(MYSQL *conn, int customer_id){
