@@ -257,6 +257,7 @@ int main() {
                 printf("Invalid Option. Please try again!\n");
                 break;
         }
+        
     }
 
     // Close the database connection

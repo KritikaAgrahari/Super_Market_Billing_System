@@ -29,8 +29,11 @@ void displayOperationMenu() {
     printf("Enter your choice: ");
 }
 
-// 
-void clear_stdin(){
+
+// function to clear the input line
+void clear_stdin() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);  // Clear input buffer
 }
 void encrypt(const char* password, int shift, char* encrypted){
 	
