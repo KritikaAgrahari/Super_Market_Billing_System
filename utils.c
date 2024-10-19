@@ -1536,8 +1536,91 @@ void updateCustomer(MYSQL *conn) {
 
 
 // Function to update order details by OrderID
-void updateOrder(MYSQL *conn){
+void updateOrder(MYSQL *conn) {
+    char *query = malloc(512 * sizeof(char));
+    int order_id;
+    char *new_status = (char *)malloc(50 * sizeof(char)); // Dynamic allocation for Status
+    char *new_date = (char *)malloc(20 * sizeof(char)); // Dynamic allocation for Date
+
+    // Ask the user for Order ID
+    printf("Enter the Order ID to update: ");
+    scanf("%d", &order_id);
+
+    // Check if the order exists
+    if (!orderExists(conn, order_id)) {
+        printf("Order with ID %d does not exist.\n", order_id);
+        free(new_status);
+        free(new_date);
+        free(query);
+        return;
+    }
+
+    // Retrieve and display current order details
+    snprintf(query, 512, "SELECT Status, OrderDate FROM Orders WHERE OrderID = %d", order_id);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        free(new_status);
+        free(new_date);
+        free(query);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Error fetching result: %s\n", mysql_error(conn));
+        free(new_status);
+        free(new_date);
+        free(query);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row) {
+        printf("\nCurrent Order Details:\n");
+        printf("Status: %s\n", row[0]);
+        printf("Order Date: %s\n", row[1]);
+    }
+    mysql_free_result(result);
+
+    // Ask for confirmation to proceed
+    printf("Are you sure you want to update Order ID %d? (1 for Yes, 0 for No): ", order_id);
+    int confirm;
+    scanf("%d", &confirm);
+    if (!confirm) {
+        printf("Update cancelled.\n");
+        free(new_status);
+        free(new_date);
+        free(query);
+        return;
+    }
+
+    // Get new details
+    printf("Enter new Status: ");
+    getchar(); // To consume newline left by scanf
+    fgets(new_status, 50, stdin);
+    new_status[strcspn(new_status, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Order Date (YYYY-MM-DD): ");
+    fgets(new_date, 20, stdin);
+    new_date[strcspn(new_date, "\n")] = 0;  // Remove newline
+
+    // Prepare SQL query to update Order
+    snprintf(query, 512, "UPDATE Orders SET Status = '%s', OrderDate = '%s' WHERE OrderID = %d",
+             new_status, new_date, order_id);
+
+    // Execute the SQL query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Order updated successfully!\n");
+    }
+
+    // Free allocated memory
+    free(new_status);
+    free(new_date);
+    free(query);
 }
+
 
 // Function to update order item details by OrderItemID
 void updateOrderItem(MYSQL *conn){
