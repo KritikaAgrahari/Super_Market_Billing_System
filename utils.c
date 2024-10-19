@@ -29,18 +29,76 @@ void displayOperationMenu() {
     printf("Enter your choice: ");
 }
 
-// 
-void clear_stdin(){
+
+// function to clear the input line
+void clear_stdin() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);  // Clear input buffer
 }
-void encrypt(const char* password, int shift, char* encrypted){
-	
+
+
+// Function to encrypt a single character with a shift
+char encryptChar(char ch, int shift) {
+    if (isalpha(ch)) {
+        char base = isupper(ch) ? 'A' : 'a';
+        return (ch - base + shift + 26) % 26 + base;
+    }
+    if (isdigit(ch)) {
+        return (ch - '0' + shift + 10) % 10 + '0';
+    }
+    return ch;
 }
-void decrypt(const char* encrypted, int shift, char* decrypted){
-	
+
+// Function to encrypt the entire password string
+void encrypt(const char* password, int shift, char* encrypted) {
+    int len = strlen(password);
+    int i;
+    for ( i = 0; i < len; i++) {
+        encrypted[i] = encryptChar(password[i], shift);
+    }
+    encrypted[len] = '\0';
 }
-void getDBPassword(MYSQL* conn, const char* id, char* encryptedPW){
-	
+
+// Function to decrypt a single character with a shift
+char decryptChar(char ch, int shift) {
+    if (isalpha(ch)) {
+        char base = isupper(ch) ? 'A' : 'a';
+        return (ch - base - shift + 26) % 26 + base;
+    }
+    if (isdigit(ch)) {
+        return (ch - '0' - shift + 10) % 10 + '0';
+    }
+    return ch;
 }
+
+// Function to decrypt the entire encrypted password string
+void decrypt(const char* encrypted, int shift, char* decrypted) {
+    int len = strlen(encrypted);
+    int i;
+    for ( i = 0; i < len; i++) {
+        decrypted[i] = decryptChar(encrypted[i], shift);
+    }
+    decrypted[len] = '\0';
+}
+
+// Function to retrieve the encrypted password from the database
+void getDBPassword(MYSQL* conn, const char* id, char* encryptedPW) {
+    char query[256];
+    sprintf(query, "SELECT Password FROM password WHERE Id = '%s'", id);
+    if (mysql_query(conn, query)) {
+        printf("Error: %s\n", mysql_error(conn));
+    } else {
+        MYSQL_RES* res = mysql_store_result(conn);
+        if (res) {
+            MYSQL_ROW row = mysql_fetch_row(res);
+            if (row) {
+                strcpy(encryptedPW, row[0]);
+            }
+        }
+    }
+}
+
+
 
 
 // Function to insert new product into Products table
