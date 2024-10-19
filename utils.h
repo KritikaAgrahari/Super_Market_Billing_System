@@ -10,7 +10,10 @@ void encrypt(const char* password, int shift, char* encrypted);
 void decrypt(const char* encrypted, int shift, char* decrypted);
 void getDBPassword(MYSQL* conn, const char* id, char* encryptedPW);
 
-
+//function for main menu
+void displayMainMenu();
+// function for operation menu
+void displayOperationMenu();
 // Function to insert new product into Products table
 void addProduct(MYSQL *conn);
 
