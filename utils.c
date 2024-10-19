@@ -1251,23 +1251,94 @@ void searchOrderItem(MYSQL *conn) {
     free(query);
 }
 
+
 // Function to check if a product exists by ProductID
-int productExists(MYSQL *conn, int product_id){
+int productExists(MYSQL *conn, int product_id) {
+    char query[256];
+    snprintf(query, sizeof(query), "SELECT COUNT(*) FROM Products WHERE ProductID = %d", product_id);
+
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        return 0; // Assuming product does not exist if the query fails
+    }
+
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (res) {
+        MYSQL_ROW row = mysql_fetch_row(res);
+        int count = atoi(row[0]);
+        mysql_free_result(res);
+        return count > 0; // Return true if product exists
+    }
+
+    return 0; // Product does not exist
 }
+
 
 // Function to check if a customer exists by CustomerID
-int customerExists(MYSQL *conn, int customer_id){
+int customerExists(MYSQL *conn, int customer_id) {
+    char query[256];
+    snprintf(query, sizeof(query), "SELECT COUNT(*) FROM Customers WHERE CustomerID = %d", customer_id);
+
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        return 0; // Assuming customer does not exist if the query fails
+    }
+
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (res) {
+        MYSQL_ROW row = mysql_fetch_row(res);
+        int count = atoi(row[0]);
+        mysql_free_result(res);
+        return count > 0; // Return true if customer exists
+    }
+
+    return 0; // Customer does not exist
 }
+
 
 // Function to check if an order exists by OrderID
-int orderExists(MYSQL *conn, int order_id){
-	
+int orderExists(MYSQL *conn, int order_id) {
+    char query[256];
+    snprintf(query, sizeof(query), "SELECT COUNT(*) FROM Orders WHERE OrderID = %d", order_id);
+
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        return 0; // Assuming order does not exist if the query fails
+    }
+
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (res) {
+        MYSQL_ROW row = mysql_fetch_row(res);
+        int count = atoi(row[0]);
+        mysql_free_result(res);
+        return count > 0; // Return true if order exists
+    }
+
+    return 0; // Order does not exist
 }
 
+
 // Function to check if an order item exists by OrderItemID
-int orderItemExists(MYSQL *conn, int order_item_id){
-	
+int orderItemExists(MYSQL *conn, int order_item_id) {
+    char query[256];
+    snprintf(query, sizeof(query), "SELECT COUNT(*) FROM OrderItems WHERE OrderItemID = %d", order_item_id);
+
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        return 0; // Assuming order item does not exist if the query fails
+    }
+
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (res) {
+        MYSQL_ROW row = mysql_fetch_row(res);
+        int count = atoi(row[0]);
+        mysql_free_result(res);
+        return count > 0; // Return true if order item exists
+    }
+
+    return 0; // Order item does not exist
 }
+
 
 // Function to update product details by ProductID
 void updateProduct(MYSQL *conn){
