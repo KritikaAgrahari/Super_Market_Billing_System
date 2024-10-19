@@ -1623,7 +1623,75 @@ void updateOrder(MYSQL *conn) {
 
 
 // Function to update order item details by OrderItemID
-void updateOrderItem(MYSQL *conn){
+void updateOrderItem(MYSQL *conn) {
+    char *query = malloc(512 * sizeof(char));
+    int order_item_id;
+    int new_product_id;
+    int new_quantity;
+
+    // Ask the user for Order Item ID
+    printf("Enter the Order Item ID to update: ");
+    scanf("%d", &order_item_id);
+
+    // Check if the order item exists
+    if (!orderItemExists(conn, order_item_id)) {
+        printf("Order Item with ID %d does not exist.\n", order_item_id);
+        free(query);
+        return;
+    }
+
+    // Retrieve and display current order item details
+    snprintf(query, 512, "SELECT ProductID, Quantity FROM OrderItems WHERE OrderItemID = %d", order_item_id);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        free(query);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Error fetching result: %s\n", mysql_error(conn));
+        free(query);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row) {
+        printf("\nCurrent Order Item Details:\n");
+        printf("Product ID: %s\n", row[0]);
+        printf("Quantity: %s\n", row[1]);
+    }
+    mysql_free_result(result);
+
+    // Ask for confirmation to proceed
+    printf("Are you sure you want to update Order Item ID %d? (1 for Yes, 0 for No): ", order_item_id);
+    int confirm;
+    scanf("%d", &confirm);
+    if (!confirm) {
+        printf("Update cancelled.\n");
+        free(query);
+        return;
+    }
+
+    // Get new details
+    printf("Enter new Product ID: ");
+    scanf("%d", &new_product_id);
+    printf("Enter new Quantity: ");
+    scanf("%d", &new_quantity);
+
+    // Prepare SQL query to update Order Item
+    snprintf(query, 512, "UPDATE OrderItems SET ProductID = %d, Quantity = %d WHERE OrderItemID = %d",
+             new_product_id, new_quantity, order_item_id);
+
+    // Execute the SQL query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Order Item updated successfully!\n");
+    }
+
+    // Free allocated memory
+    free(query);
 }
 
 
