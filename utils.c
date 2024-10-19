@@ -270,9 +270,109 @@ void createOrder(MYSQL *conn) {
 }
 
 
-// Function to add items to an order in OrderItems table
-void addOrderItem(MYSQL *conn){
-	
+void addOrderItem(MYSQL *conn) {
+    char *query;
+    char *orderIDStr = malloc(11 * sizeof(char));
+    char *productIDStr = malloc(11 * sizeof(char));
+    char *quantityStr = malloc(11 * sizeof(char));
+    double price = 0.0;
+    int quantity;
+    double subtotal;
+
+    if (orderIDStr == NULL || productIDStr == NULL || quantityStr == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+
+    // Take input from user
+    printf("\nEnter Order ID: ");
+    clear_stdin(); // Clear input buffer to avoid skipping input
+    fgets(orderIDStr, 11, stdin);
+    orderIDStr[strcspn(orderIDStr, "\n")] = 0; // Remove newline character
+
+    printf("Enter Product ID: ");
+    fgets(productIDStr, 11, stdin);
+    productIDStr[strcspn(productIDStr, "\n")] = 0; // Remove newline character
+
+    printf("Enter Quantity: ");
+    fgets(quantityStr, 11, stdin);
+    quantityStr[strcspn(quantityStr, "\n")] = 0; // Remove newline character
+    quantity = atoi(quantityStr);
+
+    // Fetch product price from Products table
+    query = malloc((64 + strlen(productIDStr)) * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation for query failed\n");
+        free(orderIDStr);
+        free(productIDStr);
+        free(quantityStr);
+        return;
+    }
+    sprintf(query, "SELECT Price FROM Products WHERE ProductID = %s", productIDStr);
+
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Failed to fetch product price: %s\n", mysql_error(conn));
+        free(query);
+        free(orderIDStr);
+        free(productIDStr);
+        free(quantityStr);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Failed to store result: %s\n", mysql_error(conn));
+        free(query);
+        free(orderIDStr);
+        free(productIDStr);
+        free(quantityStr);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row != NULL) {
+        price = atof(row[0]);
+    } else {
+        fprintf(stderr, "Product not found\n");
+        mysql_free_result(result);
+        free(query);
+        free(orderIDStr);
+        free(productIDStr);
+        free(quantityStr);
+        return;
+    }
+    mysql_free_result(result);
+    free(query);
+
+    // Calculate subtotal
+    subtotal = price * quantity;
+
+    // Allocate memory for the query to insert into OrderItems table
+    query = malloc((128 + strlen(orderIDStr) + strlen(productIDStr) + strlen(quantityStr)) * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation for query failed\n");
+        free(orderIDStr);
+        free(productIDStr);
+        free(quantityStr);
+        return;
+    }
+
+    // Formulate the query
+    sprintf(query, "INSERT INTO OrderItems (OrderID, ProductID, Quantity, Subtotal) VALUES (%s, %s, %d, %.2f)",
+            orderIDStr, productIDStr, quantity, subtotal);
+
+    // Execute the query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Failed to insert order item: %s\n", mysql_error(conn));
+    } else {
+        printf("Order item added successfully!\n");
+    }
+
+    // Free allocated memory
+    free(query);
+    free(orderIDStr);
+    free(productIDStr);
+    free(quantityStr);
 }
 
 // Function to mark order as complete by updating the total amount
