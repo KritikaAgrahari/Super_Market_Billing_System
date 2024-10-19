@@ -100,11 +100,67 @@ void getDBPassword(MYSQL* conn, const char* id, char* encryptedPW) {
 
 
 
+// Function for addition of products
+void addProduct(MYSQL *conn) {
+    char *query;
+    char *productName = malloc(101 * sizeof(char));
+    char *category = malloc(51 * sizeof(char));
+    char *priceStr = malloc(21 * sizeof(char));
+    char *stockStr = malloc(11 * sizeof(char));
 
-// Function to insert new product into Products table
-void addProduct(MYSQL *conn){
-	
+    if (productName == NULL || category == NULL || priceStr == NULL || stockStr == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+
+    // Take input from user
+    printf("\nEnter Product Name: ");
+    clear_stdin(); // Clear input buffer to avoid skipping input
+    fgets(productName, 101, stdin);
+    productName[strcspn(productName, "\n")] = 0; // Remove newline character
+
+    printf("Enter Category: ");
+    fgets(category, 51, stdin);
+    category[strcspn(category, "\n")] = 0; // Remove newline character
+
+    printf("Enter Price: ");
+    fgets(priceStr, 21, stdin);
+    priceStr[strcspn(priceStr, "\n")] = 0; // Remove newline character
+
+    printf("Enter Stock: ");
+    fgets(stockStr, 11, stdin);
+    stockStr[strcspn(stockStr, "\n")] = 0; // Remove newline character
+
+    // Allocate memory for the query
+    query = malloc((256 + strlen(productName) + strlen(category) + strlen(priceStr) + strlen(stockStr)) * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation for query failed\n");
+        free(productName);
+        free(category);
+        free(priceStr);
+        free(stockStr);
+        return;
+    }
+
+    // Formulate the query
+    sprintf(query, "INSERT INTO Products (ProductName, Category, Price, Stock) VALUES ('%s', '%s', %s, %s)", 
+            productName, category, priceStr, stockStr);
+
+    // Execute the query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Product inserted successfully!\n");
+    }
+
+    // Free allocated memory
+    free(query);
+    free(productName);
+    free(category);
+    free(priceStr);
+    free(stockStr);
 }
+
 
 // Function to insert new customer into Customers table
 void addCustomer(MYSQL *conn){
