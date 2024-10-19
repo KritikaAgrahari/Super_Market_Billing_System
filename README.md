@@ -67,7 +67,7 @@ CREATE TABLE OrderItems (
 
 Create TABLE PASSWORD(
 Id VARCHAR(20),
-Password(30));
+Password VARCHAR(30));
 ```
 
 ## Prerequisites
