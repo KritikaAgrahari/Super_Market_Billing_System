@@ -742,8 +742,145 @@ void deleteOrderItem(MYSQL *conn) {
 }
 
 // Function to search for a product by ProductID or ProductName
-void searchProduct(MYSQL *conn){
+void searchProduct(MYSQL *conn) {
+    char *query;
+    char choice;
+    int productId;
+    char *productName = malloc(101 * sizeof(char));
+
+    // Allocate memory for the query
+    query = malloc(256 * sizeof(char));
+    if (query == NULL || productName == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+
+    printf("Press 1 to display all products, 2 to search by ProductID or ProductName, 0 to exit: ");
+    scanf(" %c", &choice);
+
+    if (choice == '1') {
+        // Select all products
+        sprintf(query, "SELECT * FROM Products");
+
+        // Execute the query
+        if (mysql_query(conn, query)) {
+            fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        MYSQL_RES *result = mysql_store_result(conn);
+        if (result == NULL) {
+            fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        // Display products in table format
+        printf("+-----------+---------------------+----------+--------+-------+\n");
+        printf("| ProductID | ProductName         | Category | Price  | Stock |\n");
+        printf("+-----------+---------------------+----------+--------+-------+\n");
+
+        MYSQL_ROW row;
+        while ((row = mysql_fetch_row(result)) != NULL) {
+            printf("| %-9s | %-20s | %-8s | %-6s | %-5s |\n", row[0], row[1], row[2], row[3], row[4]);
+        }
+
+        printf("+-----------+---------------------+----------+--------+-------+\n");
+
+        mysql_free_result(result);
+    } else if (choice == '2') {
+        // Search by ProductID or ProductName
+        printf("Search by (I)D or (N)ame? Enter I or N: ");
+        scanf(" %c", &choice);
+
+        if (choice == 'I' || choice == 'i') {
+            // Search by ProductID
+            printf("Enter the ProductID: ");
+            scanf("%d", &productId);
+
+            // Formulate the query
+            sprintf(query, "SELECT * FROM Products WHERE ProductID = %d", productId);
+
+            // Execute the query
+            if (mysql_query(conn, query)) {
+                fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+                free(query);
+                return;
+            }
+
+            MYSQL_RES *result = mysql_store_result(conn);
+            if (result == NULL) {
+                fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+                free(query);
+                return;
+            }
+
+            // Check if any rows were returned
+            if (mysql_num_rows(result) > 0) {
+                MYSQL_ROW row = mysql_fetch_row(result);
+                printf("Product found:\n");
+                printf("ProductID: %s\n", row[0]);
+                printf("ProductName: %s\n", row[1]);
+                printf("Category: %s\n", row[2]);
+                printf("Price: %s\n", row[3]);
+                printf("Stock: %s\n", row[4]);
+            } else {
+                printf("No product found with ProductID %d.\n", productId);
+            }
+
+            mysql_free_result(result);
+        } else if (choice == 'N' || choice == 'n') {
+            // Search by ProductName
+            printf("Enter the ProductName: ");
+            getchar(); // To consume the newline character
+            fgets(productName, 101, stdin);
+            productName[strcspn(productName, "\n")] = 0; // Remove newline character
+
+            // Formulate the query
+            sprintf(query, "SELECT * FROM Products WHERE ProductName LIKE '%%%s%%'", productName);
+
+            // Execute the query
+            if (mysql_query(conn, query)) {
+                fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+                free(query);
+                free(productName);
+                return;
+            }
+			MYSQL_ROW row;
+            MYSQL_RES *result = mysql_store_result(conn);
+            if (result == NULL) {
+                fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+                free(query);
+                free(productName);
+                return;
+            }
+
+            // Check if any rows were returned
+            if (mysql_num_rows(result) > 0) {
+                printf("Products found:\n");
+                while ((row = mysql_fetch_row(result)) != NULL) {
+                    printf("ProductID: %s, ProductName: %s, Category: %s, Price: %s, Stock: %s\n", row[0], row[1], row[2], row[3], row[4]);
+                }
+            } else {
+                printf("No product found with name '%s'.\n", productName);
+            }
+
+            mysql_free_result(result);
+        } else {
+            printf("Invalid choice! Please enter I or N.\n");
+        }
+    } else if (choice == '0') {
+        printf("Exiting...\n");
+    } else {
+        printf("Invalid option! Please enter 1, 2, or 0.\n");
+    }
+
+    // Free allocated memory
+    free(query);
+    free(productName);
 }
+
 
 // Function to search for a customer by CustomerID or CustomerName
 void searchCustomer(MYSQL *conn){
