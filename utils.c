@@ -1024,11 +1024,231 @@ void searchCustomer(MYSQL *conn) {
 
 
 // Function to search for an order by OrderID or CustomerID
-void searchOrder(MYSQL *conn){
+void searchOrder(MYSQL *conn) {
+    char *query;
+    char choice;
+    int orderId;
+    int customerId;
+
+    // Allocate memory for the query
+    query = malloc(256 * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+
+    printf("Press 1 to display all orders, 2 to search by OrderID or CustomerID, 0 to exit: ");
+    scanf(" %c", &choice);
+
+    if (choice == '1') {
+        // Select all orders
+        sprintf(query, "SELECT * FROM Orders");
+
+        // Execute the query
+        if (mysql_query(conn, query)) {
+            fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        MYSQL_RES *result = mysql_store_result(conn);
+        if (result == NULL) {
+            fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        // Display orders in table format
+        printf("+----------+------------+---------------------+------------------+\n");
+        printf("| OrderID  | CustomerID | OrderDate           | TotalAmount      |\n");
+        printf("+----------+------------+---------------------+------------------+\n");
+
+        MYSQL_ROW row;
+        while ((row = mysql_fetch_row(result)) != NULL) {
+            printf("| %-8s | %-10s | %-20s | %-16s |\n", row[0], row[1], row[2], row[3]);
+        }
+
+        printf("+----------+------------+---------------------+------------------+\n");
+
+        mysql_free_result(result);
+    } else if (choice == '2') {
+        // Search by OrderID or CustomerID
+        printf("Search by (I)D or (C)ustomerID? Enter I or C: ");
+        scanf(" %c", &choice);
+
+        if (choice == 'I' || choice == 'i') {
+            // Search by OrderID
+            printf("Enter the OrderID: ");
+            scanf("%d", &orderId);
+
+            // Formulate the query
+            sprintf(query, "SELECT * FROM Orders WHERE OrderID = %d", orderId);
+
+            // Execute the query
+            if (mysql_query(conn, query)) {
+                fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+                free(query);
+                return;
+            }
+
+            MYSQL_RES *result = mysql_store_result(conn);
+            if (result == NULL) {
+                fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+                free(query);
+                return;
+            }
+
+            // Check if any rows were returned
+            if (mysql_num_rows(result) > 0) {
+                MYSQL_ROW row = mysql_fetch_row(result);
+                printf("Order found:\n");
+                printf("OrderID: %s\n", row[0]);
+                printf("CustomerID: %s\n", row[1]);
+                printf("OrderDate: %s\n", row[2]);
+                printf("TotalAmount: %s\n", row[3]);
+            } else {
+                printf("No order found with OrderID %d.\n", orderId);
+            }
+
+            mysql_free_result(result);
+        } else if (choice == 'C' || choice == 'c') {
+            // Search by CustomerID
+            printf("Enter the CustomerID: ");
+            scanf("%d", &customerId);
+
+            // Formulate the query
+            sprintf(query, "SELECT * FROM Orders WHERE CustomerID = %d", customerId);
+
+            // Execute the query
+            if (mysql_query(conn, query)) {
+                fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+                free(query);
+                return;
+            }
+			MYSQL_ROW row;
+            MYSQL_RES *result = mysql_store_result(conn);
+            if (result == NULL) {
+                fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+                free(query);
+                return;
+            }
+
+            // Check if any rows were returned
+            if (mysql_num_rows(result) > 0) {
+                printf("Orders found:\n");
+                while ((row = mysql_fetch_row(result)) != NULL) {
+                    printf("OrderID: %s, CustomerID: %s, OrderDate: %s, TotalAmount: %s\n", row[0], row[1], row[2], row[3]);
+                }
+            } else {
+                printf("No orders found for CustomerID %d.\n", customerId);
+            }
+
+            mysql_free_result(result);
+        } else {
+            printf("Invalid choice! Please enter I or C.\n");
+        }
+    } else if (choice == '0') {
+        printf("Exiting...\n");
+    } else {
+        printf("Invalid option! Please enter 1, 2, or 0.\n");
+    }
+
+    // Free allocated memory
+    free(query);
 }
 
+
 // Function to search for an order item by OrderItemID or OrderID
-void searchOrderItem(MYSQL *conn){
+void searchOrderItem(MYSQL *conn) {
+    char *query;
+    char choice;
+    int orderItemId;
+
+    // Allocate memory for the query
+    query = malloc(256 * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+
+    printf("Press 1 to display all order items, 2 to search by OrderItemID, 0 to exit: ");
+    scanf(" %c", &choice);
+
+    if (choice == '1') {
+        // Select all order items
+        sprintf(query, "SELECT * FROM OrderItems");
+
+        // Execute the query
+        if (mysql_query(conn, query)) {
+            fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        MYSQL_RES *result = mysql_store_result(conn);
+        if (result == NULL) {
+            fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        // Display order items in table format
+        printf("+-------------+----------+-----------+----------+----------+\n");
+        printf("| OrderItemID| OrderID  | ProductID | Quantity | Price    |\n");
+        printf("+-------------+----------+-----------+----------+----------+\n");
+
+        MYSQL_ROW row;
+        while ((row = mysql_fetch_row(result)) != NULL) {
+            printf("| %-11s | %-8s | %-9s | %-8s | %-8s |\n", row[0], row[1], row[2], row[3], row[4]);
+        }
+
+        printf("+-------------+----------+-----------+----------+----------+\n");
+
+        mysql_free_result(result);
+    } else if (choice == '2') {
+        // Search by OrderItemID
+        printf("Enter the OrderItemID: ");
+        scanf("%d", &orderItemId);
+
+        // Formulate the query
+        sprintf(query, "SELECT * FROM OrderItems WHERE OrderItemID = %d", orderItemId);
+
+        // Execute the query
+        if (mysql_query(conn, query)) {
+            fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        MYSQL_RES *result = mysql_store_result(conn);
+        if (result == NULL) {
+            fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        // Check if any rows were returned
+        if (mysql_num_rows(result) > 0) {
+            MYSQL_ROW row = mysql_fetch_row(result);
+            printf("Order item found:\n");
+            printf("OrderItemID: %s\n", row[0]);
+            printf("OrderID: %s\n", row[1]);
+            printf("ProductID: %s\n", row[2]);
+            printf("Quantity: %s\n", row[3]);
+            printf("Price: %s\n", row[4]);
+        } else {
+            printf("No order item found with OrderItemID %d.\n", orderItemId);
+        }
+
+        mysql_free_result(result);
+    } else if (choice == '0') {
+        printf("Exiting...\n");
+    } else {
+        printf("Invalid option! Please enter 1, 2, or 0.\n");
+    }
+
+    // Free allocated memory
+    free(query);
 }
 
 // Function to check if a product exists by ProductID
