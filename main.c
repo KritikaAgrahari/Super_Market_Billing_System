@@ -118,8 +118,6 @@ int main() {
     	system("cls");
         printf("\nStarting further process...\n");
         
-		joinShow(conn);
-
 		int var1, var2, var3;
 		bool a=true, b;
     // Main loop for operations
@@ -141,7 +139,7 @@ int main() {
                             addProduct(conn);
                             break;
                         case 2:
-                            removeProduct(conn, -1); // Pass actual product_id here
+                            removeProduct(conn); // Pass actual product_id here
                             break;
                         case 3:
                             searchProduct(conn);
@@ -171,7 +169,7 @@ int main() {
                             addCustomer(conn);
                             break;
                         case 2:
-                            removeCustomer(conn, -1); // Pass actual customer_id here
+                            removeCustomer(conn); // Pass actual customer_id here
                             break;
                         case 3:
                             searchCustomer(conn);
@@ -201,7 +199,7 @@ int main() {
                             createOrder(conn);
                             break;
                         case 2:
-                            deleteOrder(conn, -1); // Pass actual order_id here
+                            deleteOrder(conn); // Pass actual order_id here
                             break;
                         case 3:
                             searchOrder(conn);
@@ -231,7 +229,7 @@ int main() {
                             addOrderItem(conn);
                             break;
                         case 2:
-                            deleteOrderItem(conn, -1); // Pass actual order_item_id here
+                            deleteOrderItem(conn); // Pass actual order_item_id here
                             break;
                         case 3:
                             searchOrderItem(conn);
