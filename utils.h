@@ -75,8 +75,6 @@ void updateOrder(MYSQL *conn);
 void updateOrderItem(MYSQL *conn);
 
 
-
-
 // Function to join the table 
 void joinShow(MYSQL *conn);
 
