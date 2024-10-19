@@ -376,10 +376,12 @@ void addOrderItem(MYSQL *conn) {
 }
 
 // Function to mark order as complete by updating the total amount
-void completeOrder(MYSQL *conn, int order_id) {
+void completeOrder(MYSQL *conn) {
     char *query;
     double totalAmount = 0.0;
-
+	int order_id;
+	printf("Enter the orderId:  ");
+	scanf("%d",&order_id);
     // Allocate memory for the query to fetch subtotal from OrderItems table
     query = malloc(128 * sizeof(char));
     if (query == NULL) {
@@ -438,75 +440,80 @@ void completeOrder(MYSQL *conn, int order_id) {
 }
 
 // Function to delete a product by ProductID
-void removeProduct(MYSQL *conn, int product_id){
+// Function to delete a product by ProductID
+void removeProduct(MYSQL *conn) {
+    char *query;
+    int product_id;
+    bool a = true;
+
+    // Allocate memory for the query
+    query = malloc(256 * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation for query failed\n");
+        return;
+    }
+
+    char confirm;
+    while (a) {
+        printf("Enter the ProductID (e.g. 101): ");
+        scanf("%d", &product_id);
+
+        // Formulate the SELECT query
+        sprintf(query, "SELECT * FROM Products WHERE ProductID = %d", product_id);
+
+        // Execute the SELECT query
+        if (mysql_query(conn, query)) {
+            fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        MYSQL_RES *result = mysql_store_result(conn);
+        if (result == NULL) {
+            fprintf(stderr, "Failed to retrieve result: %s\n", mysql_error(conn));
+            free(query);
+            return;
+        }
+
+        // Check if any rows were returned
+        if (mysql_num_rows(result) > 0) {
+            MYSQL_ROW row = mysql_fetch_row(result);
+            printf("Product found:\n");
+            printf("ProductID: %s\n", row[0]);      // ProductID is the first column
+            printf("ProductName: %s\n", row[1]);    // ProductName is the second column
+            printf("Category: %s\n", row[2]);       // Category is the third column
+            printf("Price: %s\n", row[3]);          // Price is the fourth column
+            printf("Stock: %s\n", row[4]);          // Stock is the fifth column
+            printf("Confirm deletion (Y/N): ");
+        } else {
+            printf("No product found with ProductID %d. Please try again.\n", product_id);
+            mysql_free_result(result);
+            continue; // Go back to the start of the loop
+        }
+
+        // Clear the input buffer before reading a character
+        while ((getchar()) != '\n'); // Clear any remaining newline characters
+        scanf("%c", &confirm);
+        
+        if (confirm == 'Y' || confirm == 'y') {
+            sprintf(query, "DELETE FROM Products WHERE ProductID = %d", product_id);
+            // Execute the DELETE query
+            if (mysql_query(conn, query)) {
+                fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+            } else {
+                printf("Product deleted successfully!\n");
+                a = false; // Exit the loop
+            }
+        } else {
+            printf("Retry!\n");
+        }
+
+        mysql_free_result(result); // Free the result set
+    }
+
+    // Free allocated memory
+    free(query);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Function to delete a customer by CustomerID
 void removeCustomer(MYSQL *conn, int customer_id){

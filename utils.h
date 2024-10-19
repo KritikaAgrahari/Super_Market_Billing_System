@@ -27,10 +27,10 @@ void createOrder(MYSQL *conn);
 void addOrderItem(MYSQL *conn);
 
 // Function to mark order as complete by updating the total amount
-void completeOrder(MYSQL *conn, int order_id);
+void completeOrder(MYSQL *conn);
 
 // Function to delete a product by ProductID
-void removeProduct(MYSQL *conn, int product_id);
+void removeProduct(MYSQL *conn);
 
 // Function to delete a customer by CustomerID
 void removeCustomer(MYSQL *conn, int customer_id);
