@@ -1341,8 +1341,101 @@ int orderItemExists(MYSQL *conn, int order_item_id) {
 
 
 // Function to update product details by ProductID
-void updateProduct(MYSQL *conn){
+void updateProduct(MYSQL *conn) {
+    char *query = malloc(512 * sizeof(char));
+    int product_id;
+    char *new_name = (char *)malloc(100 * sizeof(char)); // Dynamic allocation for Product Name
+    char *new_description = (char *)malloc(200 * sizeof(char)); // Dynamic allocation for Description
+    float new_price;
+    int new_stock;
+
+    // Ask the user for Product ID
+    printf("Enter the Product ID to update: ");
+    scanf("%d", &product_id);
+
+    // Check if the product exists
+    if (!productExists(conn, product_id)) {
+        printf("Product with ID %d does not exist.\n", product_id);
+        free(new_name);
+        free(new_description);
+        free(query);
+        return;
+    }
+
+    // Retrieve and display current product details
+    snprintf(query, 512, "SELECT ProductName, Description, Price, Stock FROM Products WHERE ProductID = %d", product_id);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+        free(new_name);
+        free(new_description);
+        free(query);
+        return;
+    }
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (result == NULL) {
+        fprintf(stderr, "Error fetching result: %s\n", mysql_error(conn));
+        free(new_name);
+        free(new_description);
+        free(query);
+        return;
+    }
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row) {
+        printf("\nCurrent Product Details:\n");
+        printf("Name: %s\n", row[0]);
+        printf("Description: %s\n", row[1]);
+        printf("Price: %s\n", row[2]);
+        printf("Stock: %s\n", row[3]);
+    }
+    mysql_free_result(result);
+
+    // Ask for confirmation to proceed
+    printf("Are you sure you want to update Product ID %d? (1 for Yes, 0 for No): ", product_id);
+    int confirm;
+    scanf("%d", &confirm);
+    if (!confirm) {
+        printf("Update cancelled.\n");
+        free(new_name);
+        free(new_description);
+        free(query);
+        return;
+    }
+
+    // Get new details
+    printf("Enter new Product Name: ");
+    getchar(); // To consume newline left by scanf
+    fgets(new_name, 100, stdin);
+    new_name[strcspn(new_name, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Description: ");
+    fgets(new_description, 200, stdin);
+    new_description[strcspn(new_description, "\n")] = 0;  // Remove newline
+
+    printf("Enter new Price: ");
+    scanf("%f", &new_price);
+
+    printf("Enter new Stock: ");
+    scanf("%d", &new_stock);
+
+    // Prepare SQL query to update Product
+    snprintf(query, 512, "UPDATE Products SET ProductName = '%s', Description = '%s', Price = %.2f, Stock = %d WHERE ProductID = %d",
+             new_name, new_description, new_price, new_stock, product_id);
+
+    // Execute the SQL query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Product updated successfully!\n");
+    }
+
+    // Free allocated memory
+    free(new_name);
+    free(new_description);
+    free(query);
 }
+
 
 // Function to update customer details by CustomerID
 void updateCustomer(MYSQL *conn){
