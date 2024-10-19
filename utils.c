@@ -222,11 +222,53 @@ void addCustomer(MYSQL *conn) {
     free(address);
 }
 
+// Functions are redirect
+void createOrder(MYSQL *conn) {
+    char *query;
+    char *customerIDStr = malloc(11 * sizeof(char));
+    char *totalAmountStr = malloc(21 * sizeof(char));
 
-// Function to create a new order for a customer in Orders table
-void createOrder(MYSQL *conn){
-	
+    if (customerIDStr == NULL || totalAmountStr == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+
+    // Take input from user
+    printf("\nEnter Customer ID: ");
+    clear_stdin(); // Clear input buffer to avoid skipping input
+    fgets(customerIDStr, 11, stdin);
+    customerIDStr[strcspn(customerIDStr, "\n")] = 0; // Remove newline character
+
+    printf("Enter Total Amount: ");
+    fgets(totalAmountStr, 21, stdin);
+    totalAmountStr[strcspn(totalAmountStr, "\n")] = 0; // Remove newline character
+
+    // Allocate memory for the query
+    query = malloc((128 + strlen(customerIDStr) + strlen(totalAmountStr)) * sizeof(char));
+    if (query == NULL) {
+        fprintf(stderr, "Memory allocation for query failed\n");
+        free(customerIDStr);
+        free(totalAmountStr);
+        return;
+    }
+
+    // Formulate the query
+    sprintf(query, "INSERT INTO Orders (CustomerID, TotalAmount) VALUES (%s, %s)", 
+            customerIDStr, totalAmountStr);
+
+    // Execute the query
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "Query failed: %s\n", mysql_error(conn));
+    } else {
+        printf("Order created successfully!\n");
+    }
+
+    // Free allocated memory
+    free(query);
+    free(customerIDStr);
+    free(totalAmountStr);
 }
+
 
 // Function to add items to an order in OrderItems table
 void addOrderItem(MYSQL *conn){
