@@ -153,6 +153,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Author
 
 Kritika Agrahari
-```
-
-This `README.md` file provides a comprehensive overview of the project, including features, database structure, usage, and how to set it up. You can modify it further to include specific instructions or details related to your project.
