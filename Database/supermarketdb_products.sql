@@ -29,7 +29,7 @@ CREATE TABLE `products` (
   `Price` decimal(10,2) NOT NULL,
   `Stock` int NOT NULL,
   PRIMARY KEY (`ProductID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,6 +38,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
+INSERT INTO `products` VALUES (1,'Laptop','Electronics',800.00,10),(2,'Headphones','Electronics',50.00,30),(3,'Office Chair','Furniture',150.00,20),(4,'Smartphone','Electronics',500.00,15),(5,'Desk Lamp','Furniture',30.00,25);
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -50,4 +51,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-10-09 12:57:49
+-- Dump completed on 2024-10-20  0:02:14
